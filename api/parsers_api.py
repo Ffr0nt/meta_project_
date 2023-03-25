@@ -14,13 +14,14 @@ headers = {
 
 
 class HTTP_error(Exception):
-    def __init__(self, status, link):
+    def __init__(self, status, link, message = ""):
         self.status = status
         self.link = link
+        self.message = message
 
 
 def parse_IGN(URL: str,
-              save_path: str,
+              save_path: str = "",
               json_save: bool = False
               ):
     """
@@ -61,6 +62,70 @@ def parse_IGN(URL: str,
     if json_save:
         with open(save_path, 'w') as f:
             json.dump(data)
+        return
+    else:
+        return data
+
+def parse_GameSpot(URL: str,
+                   save_path: str = "",
+                   json_save: bool = False
+                   ):
+    """
+    Gets information about review about game on a page (name of game,
+    headline of article, text of review) and returns it as dict. Works only with that site!
+    IGN main page - https://www.gamespot.com
+    :param URL: str
+        page url
+    :param  save_path: str
+        Path to save data on json format
+    :return: None or dict
+        if dict - full of info (keys: name_review, ref, text)
+    """
+
+    # get HTTP page by GET request
+    r = requests.get(URL, headers=headers)
+
+    # HTTP check (f.e. for 404 request status)
+    if not r.ok:
+        raise HTTP_error(r.status_code, r.url, "Big error")
+
+
+    # HTML code scrubbing start
+    soup = bs(r.text, "html.parser")
+    body = soup.find(class_="js-content-entity-body")
+
+    if not body:
+        redirect_ref = soup.find(class_="media media-game media-game")
+        if not redirect_ref:
+            raise HTTP_error(0, r.url, "Wierd page - can not scrab!")
+
+        return parse_GameSpot("https://www.gamespot.com"+redirect_ref.a['href'], save_path, json_save)
+
+
+    p_text_list = body.find_all("p")
+
+    game_full_rewiev = ""
+    for p in p_text_list:
+        game_full_rewiev += p.text
+
+
+    # game_header = soup.find(class_="news-title instapaper_title entry-title").text
+    date = soup.find(class_="news-byline").time.text
+
+    date = date[:date.find("at")] #they provide in format February 23, 2005 at 1:41PM PST
+    # HTML code scrubbing end
+
+    # Dictionary with data forming
+    data = {
+        # 'name_review': game_header,
+        'ref': URL,
+        'date': date,
+        'text': game_full_rewiev}
+
+    # Save dictionary as json or return
+    if json_save:
+        with open(save_path, 'w') as f:
+            json.dump(data,f)
         return
     else:
         return data
