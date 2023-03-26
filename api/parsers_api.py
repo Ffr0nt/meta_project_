@@ -14,8 +14,8 @@ headers = {
 
 
 class HTTP_error(Exception):
-    def __init__(self, status, link, message = ""):
-        self.status = status
+    def __init__(self, status_code, link, message = ""):
+        self.status = status_code
         self.link = link
         self.message = message
 
@@ -83,7 +83,7 @@ def parse_GameSpot(URL: str,
     """
 
     # get HTTP page by GET request
-    r = requests.get(URL, headers=headers)
+    r = requests.get(URL, headers=headers, timeout=10)
 
     # HTTP check (f.e. for 404 request status)
     if not r.ok:
@@ -97,7 +97,8 @@ def parse_GameSpot(URL: str,
     if not body:
         redirect_ref = soup.find(class_="media media-game media-game")
         if not redirect_ref:
-            raise HTTP_error(0, r.url, "Wierd page - can not scrab!")
+            er = HTTP_error(0, r.url, "Wierd page - can not scrab!")
+            raise er
 
         return parse_GameSpot("https://www.gamespot.com"+redirect_ref.a['href'], save_path, json_save)
 
@@ -113,6 +114,8 @@ def parse_GameSpot(URL: str,
     date = soup.find(class_="news-byline").time.text
 
     date = date[:date.find("at")] #they provide in format February 23, 2005 at 1:41PM PST
+
+    game_name =  soup.find(class_="no-hover").span.text
     # HTML code scrubbing end
 
     # Dictionary with data forming
@@ -120,6 +123,7 @@ def parse_GameSpot(URL: str,
         # 'name_review': game_header,
         'ref': URL,
         'date': date,
+        'game_name' : game_name,
         'text': game_full_rewiev}
 
     # Save dictionary as json or return
@@ -129,3 +133,4 @@ def parse_GameSpot(URL: str,
         return
     else:
         return data
+#%%
