@@ -19,13 +19,18 @@ class model_2(nn.Module):
         self.RELU = nn.ReLU()
         self.Sigmoid = nn.Sigmoid()
 
-    def forward(self, texts):
-        x = ""
+    def forward(self, X):
+        all_texts = ""
 
-        for t in texts:
-            x = x+t
+        for t in X["comment"]:
+            x = t["text of comment"]
+            all_texts += x
 
-        x = self.BERT_BLOCK(x)
+        for t in X["review"]:
+            x = t["text"]
+            all_texts += x
+
+        x = self.BERT_BLOCK(all_texts)
         x = self.fc1(x)
         x = self.RELU(x)
         x = self.fc2(x)

@@ -20,12 +20,21 @@ class model_1(nn.Module):
 
         self.prediction_list = []
 
-    def forward(self, texts):
+    def forward(self, X):
         # x - list of texts no matter of modality
 
-        for t in texts:
-            # x = self.BERT_BLOCK(t)
-            x = t
+        for t in X["comment"]:
+            x = t["text of comment"]
+            x = self.BERT_BLOCK(x)
+            x = self.fc1(x)
+            x = self.RELU(x)
+            x = self.fc2(x)
+            x = self.Sigmoid(x)
+            self.prediction_list.append(x)
+
+        for t in X["review"]:
+            x = t["text"]
+            x = self.BERT_BLOCK(x)
             x = self.fc1(x)
             x = self.RELU(x)
             x = self.fc2(x)

@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
+from random import shuffle
 
 
 class model_3(nn.Module):
-    def __init__(self, bert_output_size = 5,
-                 fc_hidden_size = 10,
-                 lstm_hidden_size = 10,
-                 out_class_number =30):
+    def __init__(self, bert_output_size=5,
+                 fc_hidden_size=10,
+                 lstm_hidden_size=10,
+                 out_class_number=30):
         super().__init__()
 
         self.bert_output_size = bert_output_size # embedding length for the longest text
@@ -25,11 +26,19 @@ class model_3(nn.Module):
 
         self.text_embeddings = []
 
-    def forward(self, texts):
+    def forward(self, X):
 
-        for t in texts:
-            x = self.BERT_BLOCK(t)
+        for t in X["comment"]:
+            x = t["text of comment"]
+            x = self.BERT_BLOCK(x)
             self.text_embeddings.append(x)
+
+        for t in X["review"]:
+            x = t["text"]
+            x = self.BERT_BLOCK(x)
+            self.text_embeddings.append(x)
+
+        shuffle(self.text_embeddings) # in order to shuffle embeddings from reviews and comments
 
         memory_units = self.LSTM_BLOCK( self.text_embeddings )[1] #hidden state & cell state
         x = torch.cat((memory_units[0][0], memory_units[1][0]))
