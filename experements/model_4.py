@@ -49,10 +49,8 @@ class model_4(nn.Module):
             x = self.BERT_BLOCK_2(x)
             self.text_embeddings_2.append(x)
 
-        shuffle(self.text_embeddings_1) # in order to shuffle embeddings from reviews and comments
         memory_units_1 = self.LSTM_BLOCK_1( self.text_embeddings )[1] #hidden state & cell state
 
-        shuffle(self.text_embeddings_2) # in order to shuffle embeddings from reviews and comments
         memory_units_2 = self.LSTM_BLOCK_2( self.text_embeddings )[1] #hidden state & cell state
 
         x = torch.cat((memory_units_1[0][0], memory_units_1[1][0],
