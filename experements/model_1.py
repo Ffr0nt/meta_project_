@@ -43,7 +43,7 @@ class model_1(nn.Module):
             x = self.fc1(x)
             x = self.RELU(x)
             x = self.fc2(x)
-            x = self.Sigmoid(x)
+            x = self.Sigmoid(x)  # depends on loss function
             self.prediction_list.append(x)
 
         answer = torch.mean(
